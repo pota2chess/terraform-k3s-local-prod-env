@@ -51,13 +51,13 @@ resource "docker_container" "gitea" {
   networks_advanced {
     name = docker_network.dev-net.name
   }
+  env = [
+    "GITEA__actions__ENABLED=true",
+    "GITEA_RUNNER_REGISTRATION_TOKEN=${var.gitea_runner_registration_token}"
+  ]
   volumes {
-    container_path = "/var/lib/gitea"
+    container_path = "/data"
     host_path      = "/mount/gitea/data"
-  }
-  volumes {
-    container_path = "/etc/gitea"
-    host_path      = "/mount/gitea/config"
   }
   ports {
     internal = 3000
@@ -69,60 +69,56 @@ resource "docker_container" "gitea" {
   }
 }
 
-# Prometheus
-resource "docker_image" "prometheus" {
-  name         = "prom/prometheus:latest"
+# Runner for Gitea
+resource "docker_image" "runner" {
+  name         = "gitea/runner"
   keep_locally = true
 }
 
-resource "docker_container" "prometheus" {
-  image = docker_image.prometheus.image_id
-  name  = "prometheus"
+resource "docker_container" "runner" {
+  image   = docker_image.runner.image_id
+  name    = "runner"
+  restart = "always"
   networks_advanced {
     name = docker_network.dev-net.name
   }
-  ports {
-    internal = 9090
-    external = 9090
+  env = [
+    "CONFIG_FILE=/config.yaml",
+    "GITEA_INSTANCE_URL=${var.gitea_instance_url}",
+    "GITEA_RUNNER_REGISTRATION_TOKEN=${var.gitea_runner_registration_token}",
+    "GITEA_RUNNER_NAME=runner-a"
+  ]
+  volumes {
+    container_path = "/var/run/docker.sock"
+    host_path      = "/var/run/docker.sock"
   }
-}
-
-# Grafana
-resource "docker_image" "grafana" {
-  name         = "grafana/grafana:nightly-ubuntu"
-  keep_locally = true
-}
-
-resource "docker_container" "grafana" {
-  image = docker_image.grafana.image_id
-  name  = "grafana"
-  networks_advanced {
-    name = docker_network.dev-net.name
+  volumes {
+    host_path      = abspath("${path.module}/../../gitea/runner-a/config.yaml")
+    container_path = "/config.yaml"
   }
-  ports {
-    internal = 3000
-    external = 3001
+  volumes {
+    host_path      = abspath("${path.module}/../../gitea/runner-a/data")
+    container_path = "/data"
   }
-}
-
-# LoKi
-resource "docker_image" "loki" {
-  name         = "grafana/loki:main-34de7e2"
-  keep_locally = true
-}
-
-resource "docker_container" "loki" {
-  image = docker_image.loki.image_id
-  name  = "loki"
-  networks_advanced {
-    name = docker_network.dev-net.name
+  volumes {
+    host_path      = abspath("${path.module}/../../gitea/runner-a/cache")
+    container_path = "/root/.cache"
   }
   ports {
-    internal = 3100
-    external = 3100
+    internal = 8088
+    external = 8088
+  }
+
+  depends_on = [
+    docker_container.gitea
+  ]
+
+  provisioner "local-exec" {
+    command = "sleep 10"
   }
 }
 
+# Config file for registries k3s
 resource "local_file" "k3s_registries" {
   filename = "${path.module}/registries.yaml"
   content  = <<EOT
@@ -142,7 +138,7 @@ resource "docker_image" "k3s" {
 resource "docker_container" "k3s" {
   image      = docker_image.k3s.image_id
   name       = "k3s"
-  command    = ["server"]
+  command    = ["server", "--tls-san=k3s"]
   privileged = true
   networks_advanced {
     name = docker_network.dev-net.name
@@ -280,3 +276,186 @@ resource "helm_release" "my-app" {
     helm_release.ingress-nginx
   ]
 }
+
+/*resource "helm_release" "prometheus-stack" {
+  name             = "kube-prometheus-stack"
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "kube-prometheus-stack"
+  namespace        = "monitoring"
+  create_namespace = true
+  version          = "88.6.2"
+
+  values = [
+    yamlencode({
+      alertmanager = {
+        enabled = false
+      }
+      prometheus-node-exporter = {
+        enabled = false
+      }
+      kube-state-metrics = {
+        enabled = false
+      }
+      prometheus = {
+        prometheusSpec = {
+          scrapeInterval     = "60s"
+          evaluationInterval = "60s"
+          retention          = "24h"
+          retentionSize      = "2GB"
+          resources = {
+            requests = {
+              cpu    = "100m"
+              memory = "512Mi"
+            }
+            limits = {
+              memory = "1Gi"
+            }
+          }
+          storageSpec = {
+            volumeClaimTemplate = {
+              spec = {
+                storageClassName = "local-path"
+                acessModes       = ["ReadWriteOnce"]
+                resources = {
+                  requests = {
+                    storage = "2Gi"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      grafana = {
+        enabled       = true
+        adminPassword = "admin"
+        resources = {
+          requests = {
+            cpu    = "50m"
+            memory = "128Mi"
+          }
+          limits = {
+            memory = "256Mi"
+          }
+        }
+        persistence = {
+          enabled = false
+        }
+        ingress = {
+          enabled = false
+        }
+        additionalDataSources = [{
+          name      = "Loki"
+          type      = "loki"
+          url       = "http://loki.monitoring.svc.cluster.local:3100"
+          acess     = "proxy"
+          isDefault = false
+        }]
+        dashboardProviders = {}
+        dashboards         = {}
+      }
+      kubeProxy = { enabled = false }
+    })
+  ]
+
+  depends_on = [docker_container.k3s]
+}
+
+resource "helm_release" "loki" {
+  name             = "loki"
+  repository       = "https://grafana-community.github.io/helm-charts"
+  chart            = "loki"
+  namespace        = "monitoring"
+  create_namespace = true
+  version          = "18.11.7"
+
+  values = [
+    yamlencode({
+      deploymentMode = "Monolithic"
+      loki = {
+        auth_enabled = false
+        commonConfig = {
+          replication_factor = 1
+        }
+        storage = {
+          type = "filesystem"
+        }
+        schemaConfig = {
+          configs = [{
+            from         = "2026-01-01"
+            store        = "tsdb"
+            object_store = "filesystem"
+            schema       = "v13"
+            index = {
+              prefix = "loki_index_"
+              period = "24h"
+            }
+          }]
+        }
+        limits_cinfig = {
+          retention_period            = "48h"
+          ingestion_rate_mb           = 4
+          ingestion_burst_size_mb     = 6
+          max_entries_limit_per_query = 5000
+        }
+        resources = {
+          requests = {
+            cpu    = "100m"
+            memory = "256Mi"
+          }
+          limits = {
+            memory = "256Mi"
+          }
+        }
+        compactor = {
+          enabled = false
+        }
+        distributor = {
+          enabled = false
+        }
+        ingester = {
+          enabled = false
+        }
+        querier = {
+          enabled = false
+        }
+        queryFrontend = {
+          enabled = false
+        }
+        ruler = {
+          enabled = false
+        }
+      }
+      promtail = {
+        enabled = true
+        config = {
+          clients = [{
+            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+          }]
+          resources = {
+            requests = {
+              cpu    = "50m"
+              memory = "128Mi"
+            }
+            limits = {
+              memory = "256Mi"
+            }
+          }
+          scrapeConfigs = [{
+            job_name = "kubernetes-pods"
+            kubernetes_sd_configs = [{
+              role = "pod"
+            }]
+            relabel_configs = [{
+              source_labels = ["__meta_kubernetes_pod_annotation_kubernetes_io_log"]
+              action        = "keep"
+              regex         = "true"
+            }]
+          }]
+        }
+      }
+    })
+  ]
+
+  depends_on = [docker_container.k3s]
+} */

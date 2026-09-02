@@ -26,3 +26,14 @@ variable "local_registry" {
   type    = string
   default = "localhost:5000"
 }
+
+variable "gitea_instance_url" {
+  type        = string
+  description = "This is location gitea"
+  default     = "http://gitea:3000"
+}
+
+variable "gitea_runner_registration_token" {
+  type        = string
+  description = "Token for gitea"
+}
