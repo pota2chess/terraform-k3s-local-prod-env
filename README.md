@@ -9,7 +9,7 @@ __It includes:__
   - ~ Monitoring (Prometheus + Grafana) in the process;
   - ~ Logs (Loki + Promtail) in the process;
   - ✅ GitOps (Helm);
-
+<br>
  __System requirements:__
    - RAM: 8+ Gb;
    - CPU: 2+ Core;
@@ -19,9 +19,8 @@ __It includes:__
        - Docker (v29.7.2+);
        - Kubectl (v1.36.3+);
        - Helm (v4.2.4+).
-
-__CI/CD Pipeline__
 <br>
+__CI/CD Pipeline__
 The pipeline automatically starts when a push to main.
 <br>
 Whats happend:
@@ -31,7 +30,6 @@ Whats happend:
   4. Starts acess check.
 <br>
 __Frequent problems:__
-<br>
 see. TROUBLESHOOTING.md
 
 __Plans for improvement:__
