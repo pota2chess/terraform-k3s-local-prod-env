@@ -35,10 +35,11 @@ provider "helm" {
   }
 }
 
-# Create custom docker's network
+# Create custom docker network
 resource "docker_network" "dev-net" {
   name = "dev-net"
 }
+
 # Gitea
 resource "docker_image" "gitea" {
   name         = "gitea/gitea:latest"
@@ -52,8 +53,8 @@ resource "docker_container" "gitea" {
     name = docker_network.dev-net.name
   }
   env = [
-    "GITEA__actions__ENABLED=true",
-    "GITEA_RUNNER_REGISTRATION_TOKEN=${var.gitea_runner_registration_token}"
+    "GITEA__actions__ENABLED=true",                                          # Use this for registry runner
+    "GITEA_RUNNER_REGISTRATION_TOKEN=${var.gitea_runner_registration_token}" # Automatically registers the runner
   ]
   volumes {
     container_path = "/data"
@@ -78,12 +79,12 @@ resource "docker_image" "runner" {
 resource "docker_container" "runner" {
   image   = docker_image.runner.image_id
   name    = "runner"
-  restart = "always"
+  restart = "always" # Optional setting
   networks_advanced {
     name = docker_network.dev-net.name
   }
   env = [
-    "CONFIG_FILE=/config.yaml",
+    "CONFIG_FILE=/config.yaml", # Use this for connection the runner to custom docker network
     "GITEA_INSTANCE_URL=${var.gitea_instance_url}",
     "GITEA_RUNNER_REGISTRATION_TOKEN=${var.gitea_runner_registration_token}",
     "GITEA_RUNNER_NAME=runner-a"
@@ -114,13 +115,13 @@ resource "docker_container" "runner" {
   ]
 
   provisioner "local-exec" {
-    command = "sleep 10"
+    command = "sleep 10" # Waiting for finally creation Gitea
   }
 }
 
 # Config file for registries k3s
 resource "local_file" "k3s_registries" {
-  filename = "${path.module}/registries.yaml"
+  filename = "${path.module}/registries.yaml" # Use this for access to local registry
   content  = <<EOT
 mirrors:
   "registry:5000":
@@ -138,7 +139,7 @@ resource "docker_image" "k3s" {
 resource "docker_container" "k3s" {
   image      = docker_image.k3s.image_id
   name       = "k3s"
-  command    = ["server", "--tls-san=k3s"]
+  command    = ["server", "--tls-san=k3s"] # Runner using TLS-SAN for deploy application to cluster 
   privileged = true
   networks_advanced {
     name = docker_network.dev-net.name
@@ -168,6 +169,13 @@ resource "docker_container" "k3s" {
   }
 }
 
+# Creating s3-bucket
+resource "null_resource" "s3-terraform-state" {
+  provisioner "local-exec" {
+    command = "aws --endpoing-url http://localhost:4566 s3 mb s3://terraform-state"
+  }
+}
+
 # Localstack
 resource "docker_image" "localstack" {
   name         = "localstack/localstack:latest"
@@ -187,12 +195,12 @@ resource "docker_container" "localstack" {
   env = [
     "LOCALSTACK_AUTH_TOKEN=${var.localstack_auth_token}",
     "DEBUG=${var.debug}",
-    // "PERSISTENCE=1"
+    "PERSISTENCE=1" # Using for saving data between reboots
   ]
-  /*volumes {
-    container_path = "var/lib/localstack"
+  volumes {
+    container_path = "/var/lib/localstack"
     host_path      = "/mount/localstack/volume"
-  } */
+  }
   volumes {
     container_path = "/var/run/docker.sock"
     host_path      = "/var/run/docker.sock"
@@ -215,7 +223,7 @@ resource "docker_image" "registry" {
 resource "docker_container" "registry" {
   image   = docker_image.registry.image_id
   name    = "registry"
-  restart = "always"
+  restart = "always" # Optional setting
   networks_advanced {
     name = docker_network.dev-net.name
   }
@@ -224,7 +232,7 @@ resource "docker_container" "registry" {
     external = 5000
   }
 
-  provisioner "local-exec" {
+  provisioner "local-exec" { # Using defaults tag - latest
     command = <<EOT
     echo "Waiting starts registry"
     until curl -s http://localhost:5000/ > /dev/null; do 
@@ -256,7 +264,7 @@ resource "helm_release" "ingress-nginx" {
     {
       name  = "controller.service.ports.https"
       value = "8443"
-    }
+    } # Using NodePort because to get enternal_ip in local network is almost impossible
   ]
   depends_on = [
     docker_container.k3s

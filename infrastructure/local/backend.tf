@@ -1,5 +1,5 @@
 terraform {
-  /*  backend "s3" {
+  backend "s3" {
     bucket = "terraform-state"
     key    = "local/terraform.tfstate"
     region = "us-east-1"
@@ -11,5 +11,4 @@ terraform {
     skip_metadata_api_check     = true
     use_path_style              = true
   }
-*/
 }
