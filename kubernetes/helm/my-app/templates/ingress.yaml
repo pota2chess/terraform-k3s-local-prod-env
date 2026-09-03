@@ -7,11 +7,11 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: app.local
+  - host: {{ .Values.ingress.host }}
     http:
       paths:
-      - path: /
-        pathType: Prefix
+      - path: {{ .Values.ingress.http.path }}
+        pathType: {{ .Values.ingress.http.pathType }}
         backend:
           service:
             name: {{ .Release.Name }}
