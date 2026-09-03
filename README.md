@@ -1,6 +1,6 @@
 # terraform-k3s-local-prod-env
 This project represents local Devops-stand closer to real production-environment.
-
+<br>
 __It includes:__
   - ✅ Kubernetes-cluster (k3s) in Docker containers;
   - ✅ Infrastructure as Code (Terraform);
@@ -21,16 +21,17 @@ __It includes:__
        - Helm (v4.2.4+).
 
 __CI/CD Pipeline__
-
+<br>
 The pipeline automatically starts when a push to main.
-
+<br>
 Whats happend:
   1. Build Docker-image appllications;
   2. Image push to local registry;
   3. Deploy application with hepls Helm;
   4. Starts acess check.
-
+<br>
 __Frequent problems:__
+<br>
 see. TROUBLESHOOTING.md
 
 __Plans for improvement:__
