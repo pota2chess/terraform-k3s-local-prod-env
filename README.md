@@ -1,6 +1,6 @@
 # terraform-k3s-local-prod-env
 This project represents local Devops-stand closer to real production-environment.
-<br>
+
 **It includes:**
   - ✅ Kubernetes-cluster (k3s) in Docker containers;
   - ✅ Infrastructure as Code (Terraform);
@@ -9,6 +9,7 @@ This project represents local Devops-stand closer to real production-environment
   - ~ Monitoring (Prometheus + Grafana) in the process;
   - ~ Logs (Loki + Promtail) in the process;
   - ✅ GitOps (Helm).
+
  **System requirements:**
    - RAM: 8+ Gb;
    - CPU: 2+ Core;
@@ -18,6 +19,7 @@ This project represents local Devops-stand closer to real production-environment
        - Docker (v29.7.2+);
        - Kubectl (v1.36.3+);
        - Helm (v4.2.4+).
+         
 **CI/CD Pipeline**
 The pipeline automatically starts when a push to main.
 <br>
@@ -26,8 +28,10 @@ Whats happend:
   2. Image push to local registry;
   3. Deploy application with hepls Helm;
   4. Starts acess check.
+     
 **Frequent problems:**
 see. TROUBLESHOOTING.md
+
 **Plans for improvement:**
   - Add ArgoCD for real GitOps;
   - Implement Vault for secure using credentials;
