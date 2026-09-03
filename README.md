@@ -8,8 +8,9 @@ __It includes:__
   - ✅ Docker Registry (registry);
   - ~ Monitoring (Prometheus + Grafana) in the process;
   - ~ Logs (Loki + Promtail) in the process;
-  - ✅ GitOps (Helm);
-<br>
+  - ✅ GitOps (Helm).
+
+    
  __System requirements:__
    - RAM: 8+ Gb;
    - CPU: 2+ Core;
@@ -19,7 +20,8 @@ __It includes:__
        - Docker (v29.7.2+);
        - Kubectl (v1.36.3+);
        - Helm (v4.2.4+).
-<br>
+
+         
 __CI/CD Pipeline__
 The pipeline automatically starts when a push to main.
 <br>
@@ -28,9 +30,11 @@ Whats happend:
   2. Image push to local registry;
   3. Deploy application with hepls Helm;
   4. Starts acess check.
-<br>
+
+
 __Frequent problems:__
 see. TROUBLESHOOTING.md
+
 
 __Plans for improvement:__
   - Add ArgoCD for real GitOps;
