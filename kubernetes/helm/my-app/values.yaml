@@ -9,6 +9,8 @@ service:
   type: NodePort
   port: 8080
 
-http:
-  path: /
-  type: Prefix
+ingress:
+  host: app.local
+  http:
+    path: /
+    type: Prefix
