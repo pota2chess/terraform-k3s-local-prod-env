@@ -19,9 +19,10 @@ jobs:
     - name: Build and Push
       run: |
         docker buildx create --driver-opt network=dev-net
-        docker build -t 172.17.0.1:5000/birthday:latest .
-        docker push 172.17.0.1:5000/birthday
-  
+        docker build -t 172.17.0.1:5000/examplevotingapp_vote:latest ./src/vote/ && docker push 172.17.0.1:5000/examplevotingapp_vote
+        docker build -t 172.17.0.1:5000/examplevotingapp_worker:latest ./src/worker/ && docker push 172.17.0.1:5000/examplevotingapp_worker        
+        docker build -t 172.17.0.1:5000/examplevotingapp_result:latest ./src/result/ && docker push 172.17.0.1:5000/examplevotingapp_result
+
   deploy-and-test:
     runs-on: ubuntu-latest
     container:
@@ -31,7 +32,7 @@ jobs:
     - name: Install Node.js
       run: |
         apk add nodejs npm
-
+        
     - name: Checkout
       uses: actions/checkout@v3
 
@@ -45,4 +46,5 @@ jobs:
     - name: Running test
       run: |
         sleep 10
-        curl -H "Host: app.local" http://k3s:8080
+        curl -H "Host: vote.local" http://k3s:8080
+        curl -H "Host: result.local" http://k3s:8080
