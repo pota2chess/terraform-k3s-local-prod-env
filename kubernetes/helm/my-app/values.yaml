@@ -1,16 +1,59 @@
 replicaCount: 1
 
-image:
-  repository: registry:5000/birthday
-  tag: latest
-  pullPolicy: IfNotPresent
+applications:
+  - name: vote
+    service: true
+    ingress: true
+    image: localhost:5000/examplevotingapp_vote
+    port: 8080
+    targetPort: 80
+    host: vote.local
 
-service:
-  type: NodePort
-  port: 8080
+  - name: redis
+    service: true
+    ingress: false
+    image: redis:alpine
+    port: 6379
+    targetPort: 6379
+    volumeMounts:
+    - mountPath: /data
+      name: redis-data
+    volumes:
+    - name: redis-data
+      emptyDir: {}
 
-ingress:
-  host: app.local
-  http:
-    path: /
-    type: Prefix
+  - name: worker
+    service: false
+    ingress: false
+    image: localhost:5000/examplevotingapp_worker
+    depends_on:
+    - name: postgres
+      port: 5432
+    - name: redis
+      port: 6379
+
+  - name: db
+    service: true
+    ingress: false
+    image: postgres:15-alpine
+    port: 5432
+    targetPort: 5432
+    env:
+    - name: POSTGRES_USER
+      value: posgtres
+    - name: POSTGRES_PASSWORD
+      value: posgtres
+    volumeMounts:
+    - mountPath: /var/lib/postgresql/data
+      name: db-data
+    volumes:
+    - name: db-data
+      emptyDir: {}
+
+  - name: result
+    service: true
+    ingress: true
+    image: localhost:5000/examplevotingapp_result
+    port: 8081
+    targetPort: 80
+    host: result.local
