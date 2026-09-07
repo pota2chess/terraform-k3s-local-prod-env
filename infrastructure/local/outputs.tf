@@ -3,9 +3,14 @@ output "kubeconfig_path" {
   description = "Path to configuration file kubernetes"
 }
 
-output "app_curl_command" {
-  value       = "curl -H 'Host: app.local' http://localhost:8080"
-  description = "How to using command for check application"
+output "check_vote-app_command" {
+  value       = "curl http://vote.local:8080"
+  description = "How to using command for check vote application"
+}
+
+output "check_result-app_command" {
+  value       = "curl http://result.local:8080"
+  description = "How to using command for check result application"
 }
 
 output "k3s_container_ip" {
