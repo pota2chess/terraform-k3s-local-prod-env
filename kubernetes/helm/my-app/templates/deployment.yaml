@@ -1,20 +1,51 @@
+{{- range .Values.applications }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .name }}
+  labels:
+    app: {{ .name }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  {{- if .depends_on }}
+  initContainers:
+  - name: wait-for-dependencies
+    image: jwilder/dockerize
+    command:
+    - dockerize
+    - -wait
+    - tcp://postgres:5432
+    - -wait
+    - tcp://redis:6379
+    - -timeout
+    - 60s
+  {{- end }}
+  replicas: 1
   selector:
     matchLabels:
-      app: my-app
+      app: {{ .name }}
   template:
     metadata:
       labels:
-        app: my-app
+        app: {{ .name }}
     spec:
       containers:
-        - name: birthday
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          {{- if .env }}
+          env:
+          {{- .env | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .port }}
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - containerPort: {{ .port }}
+          {{- end }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+          {{- .volumeMounts | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .volumes }}
+      volumes:
+      {{- .volumes | toYaml | nindent 12 }}
+      {{- end }}
+{{- end }}

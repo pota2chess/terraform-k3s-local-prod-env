@@ -1,11 +1,18 @@
+{{- range .Values.applications }}
+{{- if .service }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .name }}
+  labels:
+    app: {{ .name }}
 spec:
-  type: {{ .Values.service.type | default "NodePort" }}
-  ports:
-    - port: {{ .Values.service.port | default 8080 }}
-      targetPort: 8080
   selector:
-    app: my-app
+    app: {{ .name }}
+  type: ClusterIP
+  ports:
+  - port: {{ .port }}
+    targetPort: {{ .targetPort }}
+{{- end }}
+{{- end }}
