@@ -5,9 +5,8 @@ This project represents local Devops-stand closer to real production-environment
   - ✅ Kubernetes-cluster (k3s) in Docker containers;
   - ✅ Infrastructure as Code (Terraform);
   - ✅ CI/CD (Gitea Action);
-  - ✅ Docker Registry (registry);
-  - ~ Monitoring (Prometheus + Grafana) in the process;
-  - ~ Logs (Loki + Promtail) in the process;
+  - ✅ Docker Registry (Registry);
+  - ✅ Monitoring and Loging (Netdata);
   - ✅ GitOps (Helm).
 
  **System requirements:**
