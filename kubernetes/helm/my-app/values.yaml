@@ -4,7 +4,7 @@ applications:
   - name: vote
     service: true
     ingress: true
-    image: localhost:5000/examplevotingapp_vote
+    image: dockersamples/examplevotingapp_vote
     port: 8080
     targetPort: 80
     host: vote.local
@@ -25,7 +25,7 @@ applications:
   - name: worker
     service: false
     ingress: false
-    image: localhost:5000/examplevotingapp_worker
+    image: dockersamples/examplevotingapp_worker
     depends_on:
     - name: postgres
       port: 5432
@@ -53,7 +53,7 @@ applications:
   - name: result
     service: true
     ingress: true
-    image: localhost:5000/examplevotingapp_result
+    image: dockersamples/examplevotingapp_result
     port: 8081
     targetPort: 80
     host: result.local
