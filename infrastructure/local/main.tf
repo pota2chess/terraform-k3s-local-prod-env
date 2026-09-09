@@ -139,7 +139,7 @@ resource "docker_image" "k3s" {
 resource "docker_container" "k3s" {
   image      = docker_image.k3s.image_id
   name       = "k3s"
-  command    = ["server", "--tls-san=k3s"] # Runner using TLS-SAN for deploy application to cluster 
+  command    = ["server", "--tls-san=k3s", "--disable=traefik"] # Runner using TLS-SAN for deploy application to cluster 
   privileged = true
   networks_advanced {
     name = docker_network.dev-net.name
@@ -257,7 +257,11 @@ resource "helm_release" "ingress-nginx" {
     {
       name  = "controller.service.ports.https"
       value = "8443"
-    } # Using NodePort because to get enternal_ip in local network is almost impossible
+    },
+    {
+      name  = "controller.admissionWebhooks.enabled"
+      value = "false"
+    }
   ]
   depends_on = [
     docker_container.k3s
@@ -276,4 +280,16 @@ resource "helm_release" "my-app" {
     docker_container.k3s,
     helm_release.ingress-nginx
   ]
+}
+
+# Helm release for netdata
+resource "helm_release" "netdata" {
+  name             = "netdata"
+  repository       = "https://netdata.github.io/helmchart"
+  chart            = "netdata"
+  namespace        = "netdata"
+  create_namespace = true
+
+  version = "3.7.173"
+  wait    = true
 }
