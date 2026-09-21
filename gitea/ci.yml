@@ -13,15 +13,21 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: Login in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
     - name: Set up Docker Build
       uses: docker/setup-buildx-action@v4
 
     - name: Build and Push
       run: |
         docker buildx create --driver-opt network=dev-net
-        docker build -t 172.17.0.1:5000/examplevotingapp_vote:latest ./src/vote/ && docker push 172.17.0.1:5000/examplevotingapp_vote
-        docker build -t 172.17.0.1:5000/examplevotingapp_worker:latest ./src/worker/ && docker push 172.17.0.1:5000/examplevotingapp_worker        
-        docker build -t 172.17.0.1:5000/examplevotingapp_result:latest ./src/result/ && docker push 172.17.0.1:5000/examplevotingapp_result
+        docker build -t pota2chess/examplevotingapp_vote:latest ./src/vote/ && docker push pota2chess/examplevotingapp_vote:latest
+        docker build -t pota2chess/examplevotingapp_worker:latest ./src/worker/ && docker push pota2chess/examplevotingapp_worker:latest
+        docker build -t pota2chess/examplevotingapp_result:latest ./src/result/ && docker push pota2chess/examplevotingapp_result:latest
 
   deploy-and-test:
     runs-on: ubuntu-latest
