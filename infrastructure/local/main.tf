@@ -119,17 +119,6 @@ resource "docker_container" "runner" {
   }
 }
 
-# Config file for registries k3s
-resource "local_file" "k3s_registries" {
-  filename = "${path.module}/registries.yaml" # Use this for access to local registry
-  content  = <<EOT
-mirrors:
-  "registry:5000":
-    endpoint:
-      - "http://registry:5000"
-EOT
-}
-
 # k3s
 resource "docker_image" "k3s" {
   name         = "rancher/k3s:v1.36.4-rc1-k3s1"
@@ -151,11 +140,6 @@ resource "docker_container" "k3s" {
   ports {
     internal = 8080
     external = 8080
-  }
-  volumes {
-    host_path      = abspath(local_file.k3s_registries.filename)
-    container_path = "/etc/rancher/k3s/registries.yaml"
-    read_only      = true
   }
 
   provisioner "local-exec" {
@@ -207,37 +191,6 @@ resource "docker_container" "localstack" {
   }
 }
 
-# Registry
-resource "docker_image" "registry" {
-  name         = "registry:2"
-  keep_locally = true
-}
-
-resource "docker_container" "registry" {
-  image   = docker_image.registry.image_id
-  name    = "registry"
-  restart = "always" # Optional setting
-  networks_advanced {
-    name = docker_network.dev-net.name
-  }
-  ports {
-    internal = 5000
-    external = 5000
-  }
-
-  provisioner "local-exec" { # Using defaults tag - latest
-    command = <<EOT
-    echo "Waiting starts registry"
-    until curl -s http://localhost:5000/ > /dev/null; do 
-        sleep 0.5
-      done
-    
-    docker tag ${var.image_name} ${var.local_registry}/${var.image_name}
-    docker push ${var.local_registry}/${var.image_name}
-    EOT
-  }
-}
-
 # Helm relese for ingress-nginx
 resource "helm_release" "ingress-nginx" {
   name             = "ingress-nginx"
@@ -283,7 +236,7 @@ resource "helm_release" "my-app" {
 }
 
 # Helm release for netdata
-resource "helm_release" "netdata" {
+/*resource "helm_release" "netdata" {
   name             = "netdata"
   repository       = "https://netdata.github.io/helmchart"
   chart            = "netdata"
@@ -292,4 +245,4 @@ resource "helm_release" "netdata" {
 
   version = "3.7.173"
   wait    = true
-}
+}*/
