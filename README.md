@@ -5,7 +5,7 @@ This project represents local Devops-stand closer to real production-environment
   - ✅ Kubernetes-cluster (k3s) in Docker containers;
   - ✅ Infrastructure as Code (Terraform);
   - ✅ CI/CD (Gitea Action);
-  - ✅ Docker Registry (Registry);
+  - ✅ Docker Registry (DockerHub);
   - ✅ Monitoring and Loging (Netdata);
   - ✅ GitOps (Helm).
 
@@ -24,7 +24,7 @@ The pipeline automatically starts when a push to main.
 <br>
 Whats happend:
   1. Build Docker-image appllications;
-  2. Image push to local registry;
+  2. Image push to registry on DockerHub;
   3. Deploy application with hepls Helm;
   4. Starts acess check.
      
