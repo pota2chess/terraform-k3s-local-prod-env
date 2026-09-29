@@ -90,8 +90,8 @@ resource "docker_container" "runner" {
     "GITEA_RUNNER_NAME=runner-a"
   ]
   volumes {
-    container_path = "/var/run/docker.sock"
-    host_path      = "/var/run/docker.sock"
+    container_path = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
+    host_path      = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
   }
   volumes {
     host_path      = abspath("${path.module}/../../gitea/runner-a/config.yaml")
@@ -129,7 +129,7 @@ resource "docker_container" "k3s" {
   image      = docker_image.k3s.image_id
   name       = "k3s"
   command    = ["server", "--tls-san=k3s", "--disable=traefik"] # Runner using TLS-SAN for deploy application to cluster 
-  privileged = true
+  privileged = true   # This is the only way to run a cluster in a container.
   networks_advanced {
     name = docker_network.dev-net.name
   }
@@ -179,8 +179,8 @@ resource "docker_container" "localstack" {
     host_path      = "/mount/localstack/volume"
   }
   volumes {
-    container_path = "/var/run/docker.sock"
-    host_path      = "/var/run/docker.sock"
+    container_path = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
+    host_path      = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
   }
   dynamic "ports" {
     for_each = range(4510, 4560)
