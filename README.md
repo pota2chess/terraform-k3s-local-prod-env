@@ -27,6 +27,7 @@ Whats happend:
   2. Image push to registry on DockerHub;
   3. Deploy application with hepls Helm;
   4. Starts acess check.
+  5. Rollback if an error occurs
      
 **Frequent problems:**
 see. TROUBLESHOOTING.md
