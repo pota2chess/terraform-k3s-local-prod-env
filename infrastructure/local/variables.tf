@@ -37,3 +37,4 @@ variable "gitea_runner_registration_token" {
   type        = string
   description = "Token for gitea"
 }
+

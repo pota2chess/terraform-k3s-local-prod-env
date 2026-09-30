@@ -11,6 +11,9 @@ terraform {
     helm = {
       source = "hashicorp/helm"
     }
+    flux = {
+      source = "fluxcd/flux"
+    }
   }
 }
 
@@ -90,8 +93,8 @@ resource "docker_container" "runner" {
     "GITEA_RUNNER_NAME=runner-a"
   ]
   volumes {
-    container_path = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
-    host_path      = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
+    container_path = "/var/run/docker.sock"
+    host_path      = "/var/run/docker.sock"
   }
   volumes {
     host_path      = abspath("${path.module}/../../gitea/runner-a/config.yaml")
@@ -129,7 +132,7 @@ resource "docker_container" "k3s" {
   image      = docker_image.k3s.image_id
   name       = "k3s"
   command    = ["server", "--tls-san=k3s", "--disable=traefik"] # Runner using TLS-SAN for deploy application to cluster 
-  privileged = true   # This is the only way to run a cluster in a container.
+  privileged = true
   networks_advanced {
     name = docker_network.dev-net.name
   }
@@ -179,8 +182,8 @@ resource "docker_container" "localstack" {
     host_path      = "/mount/localstack/volume"
   }
   volumes {
-    container_path = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
-    host_path      = "/var/run/docker.sock"   # It's a normal practice in a local environment. alternatives don't know how to run a container
+    container_path = "/var/run/docker.sock"
+    host_path      = "/var/run/docker.sock"
   }
   dynamic "ports" {
     for_each = range(4510, 4560)
@@ -221,22 +224,8 @@ resource "helm_release" "ingress-nginx" {
   ]
 }
 
-# Helm release for my app
-resource "helm_release" "my-app" {
-  name             = "my-app"
-  repository       = null
-  chart            = "${path.module}/../../kubernetes/helm/my-app"
-  namespace        = "my-app"
-  create_namespace = true
-
-  depends_on = [
-    docker_container.k3s,
-    helm_release.ingress-nginx
-  ]
-}
-
 # Helm release for netdata
-resource "helm_release" "netdata" {
+/*resource "helm_release" "netdata" {
   name             = "netdata"
   repository       = "https://netdata.github.io/helmchart"
   chart            = "netdata"
@@ -245,4 +234,4 @@ resource "helm_release" "netdata" {
 
   version = "3.7.173"
   wait    = true
-}
+}*/
