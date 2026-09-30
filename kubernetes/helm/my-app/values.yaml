@@ -5,6 +5,7 @@ applications:
     service: true
     ingress: true
     image: pota2chess/examplevotingapp_vote
+    tag: latest
     port: 8080
     targetPort: 80
     host: vote.local
@@ -12,7 +13,8 @@ applications:
   - name: redis
     service: true
     ingress: false
-    image: redis:alpine
+    image: redis
+    tag: alpine
     port: 6379
     targetPort: 6379
     volumeMounts:
@@ -26,8 +28,9 @@ applications:
     service: false
     ingress: false
     image: pota2chess/examplevotingapp_worker
+    tag: latest
     depends_on:
-    - name: postgres
+    - name: db
       port: 5432
     - name: redis
       port: 6379
@@ -35,7 +38,8 @@ applications:
   - name: db
     service: true
     ingress: false
-    image: postgres:15-alpine
+    image: postgres
+    tag: 15-alpine
     port: 5432
     targetPort: 5432
     env:
@@ -54,6 +58,7 @@ applications:
     service: true
     ingress: true
     image: pota2chess/examplevotingapp_result
+    tag: latest
     port: 8081
     targetPort: 80
     host: result.local
