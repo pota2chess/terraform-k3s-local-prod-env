@@ -225,7 +225,7 @@ resource "helm_release" "ingress-nginx" {
 }
 
 # Helm release for netdata
-/*resource "helm_release" "netdata" {
+resource "helm_release" "netdata" {
   name             = "netdata"
   repository       = "https://netdata.github.io/helmchart"
   chart            = "netdata"
@@ -234,4 +234,4 @@ resource "helm_release" "ingress-nginx" {
 
   version = "3.7.173"
   wait    = true
-}*/
+}
