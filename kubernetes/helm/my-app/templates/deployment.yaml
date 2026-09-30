@@ -7,19 +7,6 @@ metadata:
   labels:
     app: {{ .name }}
 spec:
-  {{- if .depends_on }}
-  initContainers:
-  - name: wait-for-dependencies
-    image: jwilder/dockerize
-    command:
-    - dockerize
-    - -wait
-    - tcp://postgres:5432
-    - -wait
-    - tcp://redis:6379
-    - -timeout
-    - 60s
-  {{- end }}
   replicas: 1
   selector:
     matchLabels:
@@ -29,9 +16,22 @@ spec:
       labels:
         app: {{ .name }}
     spec:
+      {{- if .depends_on }}
+      initContainers:
+      - name: wait-for-dependencies
+        image: jwilder/dockerize
+        command:
+        - dockerize
+        - -wait
+        - tcp://db:5432
+        - -wait
+        - tcp://redis:6379
+        - -timeout
+        - 30s
+      {{- end }}
       containers:
         - name: {{ .name }}
-          image: {{ .image }}
+          image: {{ .image }}:{{ .tag | default "latest" }}
           {{- if .env }}
           env:
           {{- .env | toYaml | nindent 12 }}
