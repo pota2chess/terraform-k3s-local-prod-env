@@ -38,7 +38,15 @@ spec:
           {{- end }}
           {{- if .port }}
           ports:
-            - containerPort: {{ .port }}
+            - containerPort: {{ .targetPort }}
+          {{- end }}
+          {{- if .readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .targetPort }}
+            initialDelaySeconds: {{ .readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .readinessProbe.periodSeconds }}
           {{- end }}
           {{- if .volumeMounts }}
           volumeMounts:
