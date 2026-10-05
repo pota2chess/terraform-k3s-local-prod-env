@@ -37,3 +37,5 @@ see. TROUBLESHOOTING.md
   - Implement Vault for secure using credentials;
   - Set up automatic scaling (HPA);
   - Add backup etcd (optional).
+
+**Update 05.10.2026:** Path /healthz has been added for Vote and Result applications to verify readiness when deploying him.
