@@ -10,23 +10,6 @@ variable "localstack_auth_token" {
   sensitive   = true
 }
 
-variable "image_name" {
-  type        = string
-  description = "Name's image for my app"
-  default     = "birthday"
-}
-
-variable "image_tag" {
-  type        = string
-  description = "Tag's image for image my app"
-  default     = "default_value"
-}
-
-variable "local_registry" {
-  type    = string
-  default = "localhost:5000"
-}
-
 variable "gitea_instance_url" {
   type        = string
   description = "This is location gitea"
