@@ -21,6 +21,10 @@ var pool = new Pool({
   connectionString: 'postgres://postgres:postgres@db/postgres'
 });
 
+app.get('/healthz', function (req, res) {
+  res.status(200).json({ status: 'ok' });
+});
+
 async.retry(
   {times: 1000, interval: 1000},
   function(callback) {
@@ -71,7 +75,10 @@ app.get('/', function (req, res) {
   res.sendFile(path.resolve(__dirname + '/views/index.html'));
 });
 
+app.get('/healthz', (req, res) => res.json({ status: 'ok' }));
+
 server.listen(port, function () {
   var port = server.address().port;
   console.log('App running on port ' + port);
 });
+
