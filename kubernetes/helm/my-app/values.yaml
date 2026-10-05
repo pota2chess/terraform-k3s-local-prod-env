@@ -12,6 +12,9 @@ applications:
     readinessProbe:
       initialDelaySeconds: 5
       periodSeconds: 10
+    resources:
+      requests: { cpu: "10m", memory: "150Mi" }
+      limits: { cpu: "20m", memory: "300Mi" }
 
   - name: redis
     service: true
@@ -26,6 +29,9 @@ applications:
     volumes:
     - name: redis-data
       emptyDir: {}
+    resources:
+      requests: { cpu: "15m", memory: "40Mi" }
+      limits: { cpu: "30m", memory: "80Mi" }
 
   - name: worker
     service: false
@@ -37,6 +43,9 @@ applications:
       port: 5432
     - name: redis
       port: 6379
+    resources:
+      requests: { cpu: "15m", memory: "70Mi" }
+      limits: { cpu: "30m", memory: "140Mi" }
 
   - name: db
     service: true
@@ -56,6 +65,9 @@ applications:
     volumes:
     - name: db-data
       emptyDir: {}
+    resources:
+      requests: { cpu: "15m", memory: "70Mi" }
+      limits: { cpu: "30m", memory: "140Mi" }
 
   - name: result
     service: true
@@ -68,3 +80,6 @@ applications:
     readinessProbe:
       initialDelaySeconds: 5
       periodSeconds: 10
+    resources:
+      requests: { cpu: "10m", memory: "70Mi" }
+      limits: { cpu: "20m", memory: "140Mi" }
